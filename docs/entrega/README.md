@@ -37,7 +37,7 @@ Para usar el servicio del docente, copia su URL de operaciones en `LISTA_SOAP_UR
 
 ## Probar en Postman
 
-Importa [la colección del escenario A](../postman/Cartas-a-Santa.postman_collection.json). En las variables de la colección, copia desde tu archivo local `.env` el valor de `TOKEN_ELFO_JEFE` en `tokenJefe` y el de `TOKEN_ELFO` en `tokenElfo`. Guarda los valores localmente. Ejecuta **Run collection** en el orden incluido. La creación guarda el identificador para las siguientes peticiones. Usa el simulador incluido para reproducir exactamente los ejemplos.
+Importa [la colección del escenario A](../../postman/Cartas-a-Santa.postman_collection.json). En las variables de la colección, copia desde tu archivo local `.env` el valor de `TOKEN_ELFO_JEFE` en `tokenJefe` y el de `TOKEN_ELFO` en `tokenElfo`. Guarda los valores localmente. Ejecuta **Run collection** en el orden incluido. La creación guarda el identificador para las siguientes peticiones. Usa el simulador incluido para reproducir exactamente los ejemplos.
 
 | Método y recurso | Acceso | Resultado |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ php artisan route:list --path=api
 
 ## Arquitectura
 
-![Recorrido de una petición desde Postman hasta SQLite y el servicio SOAP](arquitectura.png)
+![Recorrido de una petición desde Postman hasta SQLite y el servicio SOAP](../arquitectura.png)
 
 1. Postman envía JSON. Laravel selecciona la ruta en `routes/api.php`. El middleware `ExigirJefe` comprueba el token en las dos rutas protegidas.
 2. Las solicitudes de `app/Http/Requests` validan la entrada. `CartaController` delega en `CartaService` y construye la respuesta HTTP.
