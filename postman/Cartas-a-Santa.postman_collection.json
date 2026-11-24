@@ -1,0 +1,732 @@
+{
+  "info": {
+    "name": "Polo Norte · Cartas a Santa",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Ejecutar en orden con el simulador local. Completar los dos tokens con valores locales."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "tokenJefe",
+      "value": ""
+    },
+    {
+      "key": "tokenElfo",
+      "value": ""
+    },
+    {
+      "key": "cartaId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Registrar carta",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/cartas",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"remitente\": \"Valentina Pérez\",\n  \"edad\": 9,\n  \"ciudad\": \"Guayaquil\",\n  \"regalos\": [\n    \"Libro\",\n    \"Tren\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"cartaId\", pm.response.json().id);",
+              "pm.test(\"estado = RECIBIDA\", () => pm.expect(pm.response.json().estado).to.eql(\"RECIBIDA\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar detalle",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtrar y comprobar privacidad",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/cartas?estado=RECIBIDA&ciudad=Guayaquil",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Remitente abreviado y edad oculta\", () => { const carta = pm.response.json().find(x => x.id == pm.collectionVariables.get(\"cartaId\")); pm.expect(carta.remitente).to.eql(\"Valentina P.\"); pm.expect(carta).not.to.have.property(\"edad\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Editar carta recibida",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"remitente\": \"Valentina Pérez\",\n  \"edad\": 9,\n  \"ciudad\": \"Guayaquil\",\n  \"regalos\": [\n    \"Peluche\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "JSON incompleto",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/cartas",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"edad\":",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar carta inexistente",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/cartas/0",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cambiar estado sin token",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}/estado",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"APROBADA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eliminar con rol ELFO",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenElfo}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Saltar producción",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}/estado",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"ENTREGADA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Regalos duplicados",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/cartas",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"remitente\": \"Ana\",\n  \"edad\": 9,\n  \"ciudad\": \"Guayaquil\",\n  \"regalos\": [\n    \"Libro\",\n    \"Libro\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pasar a APROBADA",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}/estado",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"APROBADA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"estado = APROBADA\", () => pm.expect(pm.response.json().estado).to.eql(\"APROBADA\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pasar a EN_PRODUCCION",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}/estado",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"EN_PRODUCCION\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"estado = EN_PRODUCCION\", () => pm.expect(pm.response.json().estado).to.eql(\"EN_PRODUCCION\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pasar a ENTREGADA",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}/estado",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"ENTREGADA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"estado = ENTREGADA\", () => pm.expect(pm.response.json().estado).to.eql(\"ENTREGADA\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Proteger carta entregada",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear carta de Travieso",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/cartas",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"remitente\": \"Travieso\",\n  \"edad\": 9,\n  \"ciudad\": \"Guayaquil\",\n  \"regalos\": [\n    \"Libro\",\n    \"Tren\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"cartaId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Intentar aprobar al travieso",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}/estado",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"APROBADA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"estado = RECHAZADA\", () => pm.expect(pm.response.json().estado).to.eql(\"RECHAZADA\"));",
+              "pm.test(\"comportamiento = TRAVIESO\", () => pm.expect(pm.response.json().comportamiento).to.eql(\"TRAVIESO\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear carta de Grinch",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/cartas",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"remitente\": \"Grinch\",\n  \"edad\": 9,\n  \"ciudad\": \"Guayaquil\",\n  \"regalos\": [\n    \"Libro\",\n    \"Tren\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"cartaId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Provocar SOAP Fault",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}/estado",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"APROBADA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 503\", () => pm.response.to.have.status(503));",
+              "pm.test(\"Error uniforme\", () => pm.expect(pm.response.json()).to.have.all.keys(\"codigo\",\"mensaje\",\"detalles\",\"timestamp\",\"ruta\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verificar carta pendiente",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"estado = RECIBIDA\", () => pm.expect(pm.response.json().estado).to.eql(\"RECIBIDA\"));",
+              "pm.test(\"comportamiento = PENDIENTE_VERIFICACION\", () => pm.expect(pm.response.json().comportamiento).to.eql(\"PENDIENTE_VERIFICACION\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eliminar carta recibida",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/cartas/{{cartaId}}",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenJefe}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
