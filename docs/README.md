@@ -23,13 +23,13 @@ php artisan serve --host=127.0.0.1 --port=8000
 
 El preparador crea el archivo `.env` y genera la clave de Laravel y los tokens locales. La base usa `DB_CONNECTION=sqlite`. Si usas el servicio SOAP del docente, configura `LISTA_SOAP_URL`, ejecuta `php artisan config:clear` y reinicia Laravel.
 
-Importa la [colección de Postman](postman/Cartas-a-Santa.postman_collection.json). En sus variables locales, copia `TOKEN_ELFO_JEFE` a `tokenJefe` y `TOKEN_ELFO` a `tokenElfo`. Ejecuta la colección en orden con el simulador activo. Para correr las pruebas de Laravel, usa `php artisan test`.
+Importa la [colección de Postman](../postman/Cartas-a-Santa.postman_collection.json). En sus variables locales, copia `TOKEN_ELFO_JEFE` a `tokenJefe` y `TOKEN_ELFO` a `tokenElfo`. Ejecuta la colección en orden con el simulador activo. Para correr las pruebas de Laravel, usa `php artisan test`.
 
 ## Arquitectura
 
 Las rutas reciben peticiones de Postman. El middleware comprueba el rol en PATCH y DELETE. El controlador llama a CartaService, que aplica las reglas, guarda en SQLite mediante Eloquent y consulta la lista mediante el adaptador SOAP. Si falla la consulta, la carta queda recibida y pendiente. El manejador global devuelve el error 503 en JSON.
 
-[Ver el diagrama de arquitectura](docs/arquitectura.png)
+[Ver el diagrama de arquitectura](arquitectura.png)
 
 ## Microservicios
 
