@@ -24,7 +24,9 @@ php artisan serve --host=127.0.0.1 --port=8000
 El preparador crea el archivo `.env` y genera la clave de Laravel y los tokens locales. La base usa `DB_CONNECTION=sqlite`. Si usas el servicio SOAP del docente, configura `LISTA_SOAP_URL`, ejecuta `php artisan config:clear` y reinicia Laravel.
 
 Importa la [colección de Postman](../postman/Cartas-a-Santa.postman_collection.json). En sus variables locales, copia `TOKEN_ELFO_JEFE` a `tokenJefe` y `TOKEN_ELFO` a `tokenElfo`. Ejecuta la colección en orden con el simulador activo. Para correr las pruebas de Laravel, usa `php artisan test`.
-```video
+
+## Video explicando
+```
 https://cuucsgedu-my.sharepoint.com/:v:/g/personal/ricardo_gomez04_cu_ucsg_edu_ec/IQBliYzjnwKMTKTO-2CNZwnhAcWnhhn-m3dE9cVuidpaQG0?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=POv6am
 
 ```
